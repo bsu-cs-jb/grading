@@ -157,7 +157,7 @@ export function itemScore(item: RubricItem|undefined, score: RubricItemScore): S
   }
 }
 
-export function categoryScore(category: RubricCategory|undefined, score: RubricCategoryScore): Score {
+export function scoreCategory(category: RubricCategory|undefined, score: RubricCategoryScore): Score {
   if (!category) {
     throw new Error(`Category not found for score.categoryId ${score.categoryId}`);
   }
@@ -167,7 +167,7 @@ export function categoryScore(category: RubricCategory|undefined, score: RubricC
   return itemListScore(category.items, score.items);
 }
 
-export function rubricScore(rubric: Rubric, score: RubricScore): Score {
+export function scoreRubric(rubric: Rubric, score: RubricScore): Score {
   if (rubric.categories.length !== score.categories.length) {
     throw new Error(`rubric.categories.length "${rubric.categories.length} !== score.categories.length ${score.categories.length}`);
   }
@@ -175,7 +175,7 @@ export function rubricScore(rubric: Rubric, score: RubricScore): Score {
     (accum: Score, catScore) => (
       accumulateScores(
         accum, 
-        categoryScore(rubric.categories?.find((category) => category.id === catScore.categoryId), catScore)
+        scoreCategory(rubric.categories?.find((category) => category.id === catScore.categoryId), catScore)
       )),
     { score: 0, pointValue: 0 },
   );
