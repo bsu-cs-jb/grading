@@ -26,7 +26,7 @@ export function getConfig<T>(name: string, default_:T):T{
   }
 }
 
-const LOG_LEVELS = <const>["INFO","DEBUG","ERROR"];
+export const LOG_LEVELS = <const>["INFO","DEBUG","ERROR"];
 export type LOG_LEVEL = typeof LOG_LEVELS[number];
 
 function isInArray<T, A extends T>(
@@ -40,11 +40,11 @@ function isLogLevel_1(value: string): value is LOG_LEVEL {
   return LOG_LEVELS.includes(value as any);
 }
 
-function isType<T extends string>(value: string, values:readonly T[]): value is T {
+export function isType<T extends string>(value: string, values:readonly T[]): value is T {
   return values.includes(value as any);
 }
 
-function makeIsStringUnion<T extends string>(values: readonly T[]) {
+export function makeIsStringUnion<T extends string>(values: readonly T[]) {
   return (value: string): value is T => {
     return values.includes(value as any);
   }
@@ -53,12 +53,12 @@ function makeIsStringUnion<T extends string>(values: readonly T[]) {
 const isLogLevel = makeIsStringUnion(LOG_LEVELS);
 const DEFAULT_LOG_LEVEL = "DEBUG";
 
-interface BaseConfig {
+export interface BaseConfig {
   LOGGING_ENABLED: boolean;
   LOG_LEVEL: LOG_LEVEL;
 }
 
-class BaseConfigImpl {
+export class BaseConfigImpl {
   public get LOGGING_ENABLED():boolean {
     return getConfigBoolean("LOGGING_ENABLED", true);
 

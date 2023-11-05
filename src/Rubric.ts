@@ -52,7 +52,7 @@ export function makeRubricCategory(
   };
 }
 
-interface Score {
+export interface Score {
   score: number;
   points: number;
 }

@@ -3,7 +3,10 @@
   "version": "0.0.7",
   "license": "MIT",
   "type": "esnext",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.js",
   "scripts": {
+    "prebuild": "rm -rf ./dist",
     "build": "tsc"
   },
   "publishConfig": {
