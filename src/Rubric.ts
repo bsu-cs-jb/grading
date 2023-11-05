@@ -1,6 +1,7 @@
 import { genid } from "./genid";
 
 export interface RubricItemScore {
+  id: string;
   itemId: string;
   score: number;
   subItems?: RubricItemScore[];
@@ -17,6 +18,7 @@ export interface RubricItem {
 }
 
 export interface RubricCategoryScore {
+  id: string;
   categoryId: string;
   items: RubricItemScore[];
 }
@@ -28,6 +30,7 @@ export interface RubricCategory {
 }
 
 export interface RubricScore {
+  id: string;
   rubricId: string;
   categories: RubricCategoryScore[];
 }
@@ -73,6 +76,34 @@ export function makeRubricCategory(
 export interface Score {
   score: number;
   pointValue: number;
+}
+
+export function makeItemScore(item: RubricItem): RubricItemScore {
+  const score:RubricItemScore = {
+    id: genid(),
+    itemId: item.id,
+    score: 0,
+  };
+  if (item.subItems) {
+    score.subItems = item.subItems.map((item) => makeItemScore(item));
+  }
+  return score;
+}
+
+export function makeCategoryScore(category: RubricCategory): RubricCategoryScore {
+  return {
+    id: genid(),
+    categoryId: category.id,
+    items: category.items.map((item) => makeItemScore(item)),
+  }
+}
+
+export function makeRubricScore(rubric: Rubric): RubricScore {
+  return {
+    id: genid(),
+    rubricId: rubric.id,
+    categories: rubric.categories.map((category) => makeCategoryScore(category)),
+  }
 }
 
 function accumulateScores(accum:Score, score: Score): Score {

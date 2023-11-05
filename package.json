@@ -1,6 +1,6 @@
 {
   "name": "grading",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "license": "MIT",
   "type": "esnext",
   "main": "./dist/index.js",
