@@ -1,9 +1,4 @@
-import { range, json } from './utils';
-import { createHmac } from 'crypto';
-
-const { HASH_SECRET } = process.env;
-
-const SECRET = HASH_SECRET || "294S@t>9w";
+import { range } from './utils';
 
 const ALPHA_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const ALPHA_LOWER = "abcdefghijklmnopqrstuvwxyz";
@@ -75,19 +70,4 @@ export function urlid(length: number = 9): string {
   const num = gennum();
   const id = encodeNumber(num, length, URL_SAFE_DICTIONARY);
   return id;
-}
-
-export function hashId(data: Record<string,any>, length: number = 8): string {
-  const hash = createHmac('sha256', SECRET)
-    .update(json(data))
-    .digest('base64url');
-  return hash.substring(0, length);
-}
-
-
-export function withId<T extends Record<string,any>>(data: T): T & { id: string } {
-  return {
-    ...data,
-    id: hashId(data),
-  }
 }

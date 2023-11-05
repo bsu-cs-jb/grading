@@ -1,4 +1,4 @@
-import { genid } from "./utils";
+import { genid } from "./genid";
 
 export interface RubricItem {
   id: string;
