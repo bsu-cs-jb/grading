@@ -216,3 +216,102 @@ export function scoreRubric(rubric: Rubric, score: RubricScore): Score {
     { score: 0, pointValue: 0 },
   );
 }
+
+export function defListMap<
+  U extends { [P in IdPropertyName]: string },
+  T extends { id: string },
+  IdPropertyName extends string,
+>(
+  refList: U[],
+  defList: T[],
+  idField: IdPropertyName,
+): Array<[U, T]> {
+  return refList
+    .map((item: U): [U, T | undefined] => [
+      item,
+      defList.find((def: T) => def.id === item[idField]),
+    ])
+    .filter((value): value is [U, T] => value[1] !== undefined);
+}
+
+export function categoryScoreList(
+  scores: RubricCategoryScore[],
+  categories: RubricCategory[],
+) {
+  return defListMap<
+    RubricCategoryScore,
+    RubricCategory,
+    "categoryId"
+  >(scores, categories, "categoryId");
+}
+
+export function itemScoreList(
+  scores: RubricItemScore[],
+  items: RubricItem[],
+) {
+  return defListMap<RubricItemScore, RubricItem, "itemId">(
+    scores,
+    items,
+    "itemId",
+  );
+}
+
+export function updateRubricItemScore(
+  itemScore: RubricItemScore,
+  item: RubricItem,
+  updatedItemScore: RubricItemScore,
+): RubricItemScore {
+  // console.log(
+  //   `Updating item score ${itemScore.itemId} ${updatedItemScore.itemId}`,
+  // );
+  let scoreValue = itemScore.score;
+  if (itemScore.itemId === updatedItemScore.itemId) {
+    scoreValue = updatedItemScore.score;
+  }
+  let subItems = itemScore.subItems;
+  if (subItems && item.subItems) {
+    subItems = itemScoreList(subItems, item.subItems).map(
+      ([itemScore, item]) =>
+        updateRubricItemScore(itemScore, item, updatedItemScore),
+    );
+  }
+  return {
+    ...itemScore,
+    score: scoreValue,
+    subItems,
+  };
+}
+
+export function updateRubricCategoryScore(
+  score: RubricCategoryScore,
+  category: RubricCategory,
+  updatedItemScore: RubricItemScore,
+): RubricCategoryScore {
+  return {
+    ...score,
+    items: itemScoreList(score.items, category.items).map(
+      ([itemScore, item]) =>
+        updateRubricItemScore(itemScore, item, updatedItemScore),
+    ),
+  };
+}
+
+export function updateRubricScore(
+  score: RubricScore,
+  rubric: Rubric,
+  updatedItemScore: RubricItemScore,
+): RubricScore {
+  return {
+    ...score,
+    categories: categoryScoreList(
+      score.categories,
+      rubric.categories,
+    ).map(([categoryScore, category]) =>
+      updateRubricCategoryScore(
+        categoryScore,
+        category,
+        updatedItemScore,
+      ),
+    ),
+  };
+}

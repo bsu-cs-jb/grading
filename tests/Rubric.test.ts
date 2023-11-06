@@ -1,6 +1,6 @@
 import {describe, expect, test} from '@jest/globals';
 
-import { scoreRubric, makeRubric, makeRubricScore, makeRubricCategory, makeRubricItem, Score } from "../src/Rubric";
+import { updateRubricScore, scoreRubric, makeRubric, makeRubricScore, makeRubricCategory, makeRubricItem, Score } from "../src/Rubric";
 
 // TODO: Make into fixture
 function makeTestRubric() {
@@ -144,3 +144,42 @@ test('score rubric', () => {
 })
 
 
+test('update rubric score', () => {
+  const rubric = makeTestRubric();
+  let rubricScore = makeRubricScore(rubric);
+
+  let score: Score = scoreRubric(rubric, rubricScore);
+  // with no points earned or lost, score should be 0
+  expect(score).toHaveProperty("score", 0);
+  expect(score).toHaveProperty("pointValue", 12.5);
+
+  // +2 points out of 4
+  rubricScore = updateRubricScore(
+    rubricScore,
+    rubric,
+    {
+      id: "",
+      itemId: "cat-0-item-2",
+      score: 2,
+    },
+  );
+
+  score = scoreRubric(rubric, rubricScore);
+  expect(score).toHaveProperty("score", 2);
+  expect(score).toHaveProperty("pointValue", 12.5);
+
+  // +0.5 for full score on half point item 
+  rubricScore = updateRubricScore(
+    rubricScore,
+    rubric,
+    {
+      id: "",
+      itemId: "cat-1-item-1-subItem-1",
+      score: 1,
+    },
+  );
+
+  score = scoreRubric(rubric, rubricScore);
+  expect(score).toHaveProperty("score", 2.5);
+  expect(score).toHaveProperty("pointValue", 12.5);
+})
