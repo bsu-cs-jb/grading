@@ -3,16 +3,18 @@ import { genid } from "./genid";
 export interface RubricItemScore {
   id: string;
   itemId: string;
-  score: number;
+  score?: number;
   subItems?: RubricItemScore[];
 }
 
 export type ScoreType = "boolean" | "full_half" | "points";
+export type ScoreValue = "points" | "bonus" | "penalty";
 
 export interface RubricItem {
   id: string;
   name: string;
   scoreType: ScoreType;
+  scoreValue: ScoreValue;
   pointValue: number;
   subItems?: RubricItem[];
 }
@@ -55,6 +57,7 @@ export function makeRubricItem(
     id: genid(),
     name: "Unnamed item",
     scoreType: "boolean",
+    scoreValue: "points",
     pointValue: 1,
     ...props,
   };
@@ -73,6 +76,19 @@ export function makeRubricCategory(
   };
 }
 
+type RubricOptional = AllOptional<Rubric>;
+
+export function makeRubric(
+  props?: RubricOptional,
+): Rubric {
+  return {
+    id: genid(),
+    name: "Unnamed rubric",
+    categories: [],
+    ...props,
+  };
+}
+
 export interface Score {
   score: number;
   pointValue: number;
@@ -82,7 +98,7 @@ export function makeItemScore(item: RubricItem): RubricItemScore {
   const score:RubricItemScore = {
     id: genid(),
     itemId: item.id,
-    score: 0,
+    score: undefined,
   };
   if (item.subItems) {
     score.subItems = item.subItems.map((item) => makeItemScore(item));
@@ -113,18 +129,18 @@ function accumulateScores(accum:Score, score: Score): Score {
   };
 }
 
-export function itemListScore(items: RubricItem[], scores: RubricItemScore[]): Score {
+export function scoreItemList(items: RubricItem[], scores: RubricItemScore[]): Score {
   if (items.length !== scores.length) {
     throw new Error(`items.length "${items.length} !== scores.length ${scores.length}`);
   }
   return scores.reduce(
     (accum: Score, score) => (
-      accumulateScores(accum, itemScore(items?.find((item) => item.id === score.itemId), score))),
+      accumulateScores(accum, scoreItem(items?.find((item) => item.id === score.itemId), score))),
     { score: 0, pointValue: 0 },
   );
 }
 
-export function itemScore(item: RubricItem|undefined, score: RubricItemScore): Score {
+export function scoreItem(item: RubricItem|undefined, score: RubricItemScore): Score {
   if (!item) {
     throw new Error(`item not found for score.itemId ${score.itemId}`);
   }
@@ -135,23 +151,43 @@ export function itemScore(item: RubricItem|undefined, score: RubricItemScore): S
     if (!score.subItems) {
       throw new Error('item.subItems but no score.subItems');
     }
-    return itemListScore(item.subItems, score.subItems);
+    return scoreItemList(item.subItems, score.subItems);
   } else {
+    let pointValue;
+    switch (item.scoreValue) {
+      case "points":
+        pointValue = item.pointValue;
+        break;
+      case "bonus":
+        pointValue = 0;
+        break;
+      case "penalty":
+        pointValue = 0;
+        break;
+    }
     switch (item.scoreType) {
       case "boolean":
         return {
-          score: score.score > 0 ? item.pointValue : 0,
-          pointValue: item.pointValue,
+          score: score.score === undefined ? 0 : (score.score > 0 ? item.pointValue : 0),
+          pointValue,
         };
       case "full_half":
         return {
-          score: score.score * item.pointValue,
-          pointValue: item.pointValue,
+          score: score.score === undefined ? 0 : score.score * item.pointValue,
+          pointValue,
         };
       case "points":
+        let pointScore = 0;
+        if (score.score === undefined) {
+          pointScore = 0;
+        } else if (item.pointValue < 0) {
+          pointScore = -1 * score.score;
+        } else {
+          pointScore = score.score;
+        }
         return {
-          score: score.score,
-          pointValue: item.pointValue,
+          score: pointScore,
+          pointValue,
         };
     }
   }
@@ -164,7 +200,7 @@ export function scoreCategory(category: RubricCategory|undefined, score: RubricC
   if (category.id !== score.categoryId) {
     throw new Error(`item.id "${category.id} !== score.itemId ${score.categoryId}`);
   }
-  return itemListScore(category.items, score.items);
+  return scoreItemList(category.items, score.items);
 }
 
 export function scoreRubric(rubric: Rubric, score: RubricScore): Score {
