@@ -1,13 +1,13 @@
 {
   "name": "grading",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "license": "MIT",
-  "type": "esnext",
   "main": "./dist/index.js",
   "types": "./dist/index.d.js",
   "scripts": {
     "prebuild": "rm -rf ./dist",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "jest"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
