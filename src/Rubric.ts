@@ -1,4 +1,4 @@
-import { genid } from "./genid";
+import { urlid } from "./genid";
 
 export interface RubricItemScore {
   id: string;
@@ -54,7 +54,7 @@ export function makeRubricItem(
   props?: RubricItemOptional,
 ): RubricItem {
   return {
-    id: genid(),
+    id: urlid(),
     name: "Unnamed item",
     scoreType: "boolean",
     scoreValue: "points",
@@ -65,11 +65,52 @@ export function makeRubricItem(
 
 type RubricCategoryOptional = AllOptional<RubricCategory>;
 
+type RubricIdMap = Record<string, RubricItem[]>;
+
+export function validateUniqueItemIds(items: RubricItem[], idMap?:RubricIdMap): [boolean, RubricIdMap] {
+  if (idMap === undefined) {
+    idMap = {};
+  }
+  let allUnique = true;
+
+  for (const item of items) {
+    if (item.id in idMap) {
+      console.log(`Duplicate ${item.id}.`);
+      idMap[item.id].push(item);
+      allUnique = false;
+    } else {
+      idMap[item.id] = [item];
+    }
+    if (item.subItems) {
+      const [subItemUnique] = validateUniqueItemIds(item.subItems, idMap);
+      allUnique &&= subItemUnique;
+    }
+  }
+
+  return [allUnique, idMap];
+}
+
+export function validateCategories(categories: RubricCategory[]): boolean {
+  const idMap: Record<string, RubricItem[]> = {};
+  let allUnique = true;
+
+  for (const category of categories) {
+    const [subItemUnique] = validateUniqueItemIds(category.items, idMap);
+    allUnique &&= subItemUnique;
+  }
+
+  return allUnique;
+}
+
+export function validateRubric(rubric: Rubric): boolean {
+  return validateCategories(rubric.categories);
+}
+
 export function makeRubricCategory(
   props?: RubricCategoryOptional,
 ): RubricCategory {
   return {
-    id: genid(),
+    id: urlid(),
     name: "Unnamed category",
     items: [],
     ...props,
@@ -81,12 +122,19 @@ type RubricOptional = AllOptional<Rubric>;
 export function makeRubric(
   props?: RubricOptional,
 ): Rubric {
-  return {
-    id: genid(),
+  const rubric = {
+    id: urlid(),
     name: "Unnamed rubric",
     categories: [],
     ...props,
   };
+
+  const valid = validateCategories(rubric.categories);
+  if (!valid) {
+    console.log(`Invalid item in rubric ${rubric.name} ${rubric.id}`);
+  }
+
+  return rubric;
 }
 
 export interface Score {
@@ -96,7 +144,7 @@ export interface Score {
 
 export function makeItemScore(item: RubricItem): RubricItemScore {
   const score:RubricItemScore = {
-    id: genid(),
+    id: urlid(),
     itemId: item.id,
     score: undefined,
   };
@@ -108,7 +156,7 @@ export function makeItemScore(item: RubricItem): RubricItemScore {
 
 export function makeCategoryScore(category: RubricCategory): RubricCategoryScore {
   return {
-    id: genid(),
+    id: urlid(),
     categoryId: category.id,
     items: category.items.map((item) => makeItemScore(item)),
   }
@@ -116,7 +164,7 @@ export function makeCategoryScore(category: RubricCategory): RubricCategoryScore
 
 export function makeRubricScore(rubric: Rubric): RubricScore {
   return {
-    id: genid(),
+    id: urlid(),
     rubricId: rubric.id,
     categories: rubric.categories.map((category) => makeCategoryScore(category)),
   }

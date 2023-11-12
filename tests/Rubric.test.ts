@@ -1,6 +1,18 @@
 import {describe, expect, test} from '@jest/globals';
 
-import { updateRubricScore, scoreRubric, makeRubric, makeRubricScore, makeRubricCategory, makeRubricItem, Score } from "../src/Rubric";
+import { 
+  RubricItem,
+  validateUniqueItemIds,
+  validateCategories,
+  validateRubric,
+  updateRubricScore,
+  scoreRubric,
+  makeRubric,
+  makeRubricScore,
+  makeRubricCategory,
+  makeRubricItem,
+  Score,
+} from "../src/Rubric";
 
 // TODO: Make into fixture
 function makeTestRubric() {
@@ -183,3 +195,71 @@ test('update rubric score', () => {
   expect(score).toHaveProperty("score", 2.5);
   expect(score).toHaveProperty("pointValue", 12.5);
 })
+
+test('validate rubric items', () => {
+  const rubric = makeTestRubric();
+  let rubricScore = makeRubricScore(rubric);
+  let items: RubricItem[] = [];
+
+  items = [
+    makeRubricItem({ id: "cat-0-item-0" }),
+    makeRubricItem({ id: "cat-0-item-1" }),
+  ];
+  let [valid] = validateUniqueItemIds(items);
+  expect(valid).toBeTruthy();
+
+  items = [
+    makeRubricItem({ id: "cat-0-item-0" }),
+    makeRubricItem({ id: "cat-0-item-0" }),
+  ];
+  [valid] = validateUniqueItemIds(items);
+  expect(valid).toBeFalsy();
+
+  items = [
+    makeRubricItem({ id: "cat-0-item-0" }),
+    makeRubricItem({ id: "cat-0-item-1",
+    subItems: [
+      makeRubricItem({ id: "cat-0-subItem-0" }),
+      makeRubricItem({ id: "cat-0-subItem-1" }),
+    ] }),
+  ];
+  [valid] = validateUniqueItemIds(items);
+  expect(valid).toBeTruthy();
+
+  items = [
+    makeRubricItem({ id: "cat-0-item-0" }),
+    makeRubricItem({ id: "cat-0-item-1",
+    subItems: [
+      makeRubricItem({ id: "cat-0-subItem-0" }),
+      makeRubricItem({ id: "cat-0-item-0" }),
+    ] }),
+  ];
+  [valid] = validateUniqueItemIds(items);
+  expect(valid).toBeFalsy();
+
+});
+
+test('validate rubric', () => {
+  let valid: boolean = true;
+
+  const rubric = makeTestRubric();
+  valid = validateRubric(rubric);
+  expect(valid).toBeTruthy();
+
+  const categories = [
+    makeRubricCategory({
+      items: [
+        makeRubricItem({ id: "cat-0-item-0" }),
+        makeRubricItem({ id: "cat-0-item-1" }),
+      ],
+    }),
+    makeRubricCategory({
+      items: [
+        makeRubricItem({ id: "cat-0-item-0" }),
+        makeRubricItem({ id: "cat-1-item-1" }),
+      ],
+    }),
+  ];
+  valid = validateCategories(categories);
+  expect(valid).toBeFalsy();
+});
