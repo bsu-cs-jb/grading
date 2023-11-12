@@ -72,6 +72,7 @@ export function validateUniqueItemIds(items: RubricItem[], idMap?:RubricIdMap): 
     idMap = {};
   }
   let allUnique = true;
+  let subItemUnique = true;
 
   for (const item of items) {
     if (item.id in idMap) {
@@ -82,7 +83,7 @@ export function validateUniqueItemIds(items: RubricItem[], idMap?:RubricIdMap): 
       idMap[item.id] = [item];
     }
     if (item.subItems) {
-      const [subItemUnique] = validateUniqueItemIds(item.subItems, idMap);
+      [subItemUnique, idMap] = validateUniqueItemIds(item.subItems, idMap);
       allUnique &&= subItemUnique;
     }
   }
@@ -91,11 +92,12 @@ export function validateUniqueItemIds(items: RubricItem[], idMap?:RubricIdMap): 
 }
 
 export function validateCategories(categories: RubricCategory[]): boolean {
-  const idMap: Record<string, RubricItem[]> = {};
+  let idMap: Record<string, RubricItem[]> = {};
   let allUnique = true;
+  let subItemUnique = true;
 
   for (const category of categories) {
-    const [subItemUnique] = validateUniqueItemIds(category.items, idMap);
+    [subItemUnique, idMap] = validateUniqueItemIds(category.items, idMap);
     allUnique &&= subItemUnique;
   }
 
@@ -109,12 +111,19 @@ export function validateRubric(rubric: Rubric): boolean {
 export function makeRubricCategory(
   props?: RubricCategoryOptional,
 ): RubricCategory {
-  return {
+  const category = {
     id: urlid(),
     name: "Unnamed category",
     items: [],
     ...props,
   };
+
+  const valid = validateUniqueItemIds(category.items);
+  if (!valid) {
+    console.log(`Invalid item in category ${category.name} ${category.id}`);
+  }
+
+  return category;
 }
 
 type RubricOptional = AllOptional<Rubric>;
