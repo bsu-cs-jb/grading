@@ -1,10 +1,18 @@
-import { Rubric, RubricScore } from "./Rubric.js";
+import { Rubric, RubricScore } from './Rubric.js';
 
 export interface Student {
   id: string;
   name: string;
   repoName?: string;
   repoUrl?: string;
+}
+
+export interface CourseDbObj {
+  id: string;
+  name: string;
+  studentIds: string[];
+  // gradebook: StudentGrades[];
+  rubricIds: string[];
 }
 
 export interface Course {
@@ -18,4 +26,8 @@ export interface Course {
 export interface StudentGrades {
   studentId: string;
   assignments: RubricScore[];
+}
+
+export function findRubric(course:Course, rubricId:string): Rubric|undefined {
+  return course.rubrics.find((rubric) => rubric.id == rubricId);
 }

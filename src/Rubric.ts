@@ -1,4 +1,4 @@
-import { urlid } from "./genid.js";
+import { urlid } from './genid.js';
 
 export interface RubricItemScore {
   id: string;
@@ -7,8 +7,8 @@ export interface RubricItemScore {
   subItems?: RubricItemScore[];
 }
 
-export type ScoreType = "boolean" | "full_half" | "points";
-export type ScoreValue = "points" | "bonus" | "penalty";
+export type ScoreType = 'boolean' | 'full_half' | 'points';
+export type ScoreValue = 'points' | 'bonus' | 'penalty';
 
 export interface RubricItem {
   id: string;
@@ -55,9 +55,9 @@ export function makeRubricItem(
 ): RubricItem {
   return {
     id: urlid(),
-    name: "Unnamed item",
-    scoreType: "boolean",
-    scoreValue: "points",
+    name: 'Unnamed item',
+    scoreType: 'boolean',
+    scoreValue: 'points',
     pointValue: 1,
     ...props,
   };
@@ -113,7 +113,7 @@ export function makeRubricCategory(
 ): RubricCategory {
   const category = {
     id: urlid(),
-    name: "Unnamed category",
+    name: 'Unnamed category',
     items: [],
     ...props,
   };
@@ -133,7 +133,7 @@ export function makeRubric(
 ): Rubric {
   const rubric = {
     id: urlid(),
-    name: "Unnamed rubric",
+    name: 'Unnamed rubric',
     categories: [],
     ...props,
   };
@@ -168,7 +168,7 @@ export function makeCategoryScore(category: RubricCategory): RubricCategoryScore
     id: urlid(),
     categoryId: category.id,
     items: category.items.map((item) => makeItemScore(item)),
-  }
+  };
 }
 
 export function makeRubricScore(rubric: Rubric): RubricScore {
@@ -176,7 +176,7 @@ export function makeRubricScore(rubric: Rubric): RubricScore {
     id: urlid(),
     rubricId: rubric.id,
     categories: rubric.categories.map((category) => makeCategoryScore(category)),
-  }
+  };
 }
 
 function accumulateScores(accum:Score, score: Score): Score {
@@ -211,41 +211,41 @@ export function scoreItem(item: RubricItem|undefined, score: RubricItemScore): S
     return scoreItemList(item.subItems, score.subItems);
   } else {
     let pointValue;
+    let pointScore = 0;
     switch (item.scoreValue) {
-      case "points":
-        pointValue = item.pointValue;
-        break;
-      case "bonus":
-        pointValue = 0;
-        break;
-      case "penalty":
-        pointValue = 0;
-        break;
+    case 'points':
+      pointValue = item.pointValue;
+      break;
+    case 'bonus':
+      pointValue = 0;
+      break;
+    case 'penalty':
+      pointValue = 0;
+      break;
     }
     switch (item.scoreType) {
-      case "boolean":
-        return {
-          score: score.score === undefined ? 0 : (score.score > 0 ? item.pointValue : 0),
-          pointValue,
-        };
-      case "full_half":
-        return {
-          score: score.score === undefined ? 0 : score.score * item.pointValue,
-          pointValue,
-        };
-      case "points":
-        let pointScore = 0;
-        if (score.score === undefined) {
-          pointScore = 0;
-        } else if (item.pointValue < 0) {
-          pointScore = -1 * score.score;
-        } else {
-          pointScore = score.score;
-        }
-        return {
-          score: pointScore,
-          pointValue,
-        };
+    case 'boolean':
+      return {
+        score: score.score === undefined ? 0 : (score.score > 0 ? item.pointValue : 0),
+        pointValue,
+      };
+    case 'full_half':
+      return {
+        score: score.score === undefined ? 0 : score.score * item.pointValue,
+        pointValue,
+      };
+    case 'points':
+      if (score.score === undefined) {
+        pointScore = 0;
+      } else if (item.pointValue < 0) {
+        pointScore = -1 * score.score;
+      } else {
+        pointScore = score.score;
+      }
+      return {
+        score: pointScore,
+        pointValue,
+      };
     }
   }
 }
@@ -298,18 +298,18 @@ export function categoryScoreList(
   return defListMap<
     RubricCategoryScore,
     RubricCategory,
-    "categoryId"
-  >(scores, categories, "categoryId");
+    'categoryId'
+  >(scores, categories, 'categoryId');
 }
 
 export function itemScoreList(
   scores: RubricItemScore[],
   items: RubricItem[],
 ) {
-  return defListMap<RubricItemScore, RubricItem, "itemId">(
+  return defListMap<RubricItemScore, RubricItem, 'itemId'>(
     scores,
     items,
-    "itemId",
+    'itemId',
   );
 }
 

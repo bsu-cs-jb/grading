@@ -3,8 +3,9 @@ import { json } from './utils.js';
 
 const { HASH_SECRET } = process.env;
 
-const SECRET = HASH_SECRET || "294S@t>9w";
+const SECRET = HASH_SECRET || '294S@t>9w';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hashId(data: Record<string,any>, length: number = 8): string {
   const hash = createHmac('sha256', SECRET)
     .update(json(data))
@@ -13,9 +14,10 @@ export function hashId(data: Record<string,any>, length: number = 8): string {
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function withId<T extends Record<string,any>>(data: T): T & { id: string } {
   return {
     ...data,
     id: hashId(data),
-  }
+  };
 }

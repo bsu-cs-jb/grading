@@ -1,4 +1,4 @@
-const TRUTH_VALUES = ['true', '1', 'yes']
+const TRUTH_VALUES = ['true', '1', 'yes'];
 
 export function getConfigBoolean(
   name:  string,
@@ -6,7 +6,7 @@ export function getConfigBoolean(
   truth_values: string[] = TRUTH_VALUES,
 ): boolean {
   const value = process.env[name];
-  if (value === undefined || value === "") {
+  if (value === undefined || value === '') {
     return default_;
   }
   const normValue = value.trim().toLowerCase();
@@ -26,9 +26,10 @@ export function getConfig<T>(name: string, default_:T):T{
   }
 }
 
-export const LOG_LEVELS = <const>["INFO","DEBUG","ERROR"];
+export const LOG_LEVELS = <const>['INFO','DEBUG','ERROR'];
 export type LOG_LEVEL = typeof LOG_LEVELS[number];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isInArray<T, A extends T>(
   item: T,
   array: ReadonlyArray<A>
@@ -36,22 +37,26 @@ function isInArray<T, A extends T>(
   return array.includes(item as A);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isLogLevel_1(value: string): value is LOG_LEVEL {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return LOG_LEVELS.includes(value as any);
 }
 
 export function isType<T extends string>(value: string, values:readonly T[]): value is T {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return values.includes(value as any);
 }
 
 export function makeIsStringUnion<T extends string>(values: readonly T[]) {
   return (value: string): value is T => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return values.includes(value as any);
-  }
+  };
 }
 
 const isLogLevel = makeIsStringUnion(LOG_LEVELS);
-const DEFAULT_LOG_LEVEL = "DEBUG";
+const DEFAULT_LOG_LEVEL = 'DEBUG';
 
 export interface BaseConfig {
   LOGGING_ENABLED: boolean;
@@ -60,11 +65,11 @@ export interface BaseConfig {
 
 export class BaseConfigImpl {
   public get LOGGING_ENABLED():boolean {
-    return getConfigBoolean("LOGGING_ENABLED", true);
+    return getConfigBoolean('LOGGING_ENABLED', true);
 
   }
   public get LOG_LEVEL():LOG_LEVEL {
-    const value = getConfig("LOG_LEVEL", DEFAULT_LOG_LEVEL).toUpperCase();
+    const value = getConfig('LOG_LEVEL', DEFAULT_LOG_LEVEL).toUpperCase();
     if (isLogLevel(value)) {
       return value;
     } else {

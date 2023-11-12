@@ -1,16 +1,16 @@
 import { range } from './utils.js';
 
-const ALPHA_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const ALPHA_LOWER = "abcdefghijklmnopqrstuvwxyz";
+const ALPHA_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ALPHA_LOWER = 'abcdefghijklmnopqrstuvwxyz';
 const ALPHA = ALPHA_UPPER + ALPHA_LOWER;
-const NUMBERS = "0123456789";
-const SYMBOLS = "~!@#$%^&*()[]{}<>/|,.+=-?:;_";
+const NUMBERS = '0123456789';
+const SYMBOLS = '~!@#$%^&*()[]{}<>/|,.+=-?:;_';
 const DICTIONARY = NUMBERS + ALPHA + SYMBOLS;
 const B64_URL_DICT = (
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  + "abcdefghijklmnopqrstuvwxyz"
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  + 'abcdefghijklmnopqrstuvwxyz'
   + NUMBERS
-  + "-_"
+  + '-_'
 );
 const URL_SAFE_DICTIONARY = B64_URL_DICT;
 
@@ -37,7 +37,7 @@ export function encodeNumber(n: number, length?: number, dictionary?: string): s
     console.log(`Calculated length: ${length}`);
   }
   let c = n;
-  let id = "";
+  let id = '';
   for (const _ of range(length)) {
     const [div, rem] = divmod(c, DICT_LENGTH);
     id = DICTIONARY.at(rem) + id;
