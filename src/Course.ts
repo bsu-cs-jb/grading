@@ -1,4 +1,4 @@
-import { Rubric, RubricScore } from "./Rubric";
+import { Rubric, RubricScore } from "./Rubric.js";
 
 export interface Student {
   id: string;

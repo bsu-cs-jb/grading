@@ -1,4 +1,4 @@
-import { urlid } from "./genid";
+import { urlid } from "./genid.js";
 
 export interface RubricItemScore {
   id: string;
@@ -76,7 +76,7 @@ export function validateUniqueItemIds(items: RubricItem[], idMap?:RubricIdMap): 
 
   for (const item of items) {
     if (item.id in idMap) {
-      console.log(`Duplicate ${item.id}.`);
+      console.log(`Duplicate item ${idMap[item.id].length} ${item.id} ${item.name}.`);
       idMap[item.id].push(item);
       allUnique = false;
     } else {

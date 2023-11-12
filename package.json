@@ -1,9 +1,10 @@
 {
   "name": "grading",
-  "version": "0.1.3",
+  "version": "0.2.3",
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.js",
+  "type": "module",
   "scripts": {
     "prebuild": "rm -rf ./dist",
     "build": "tsc",

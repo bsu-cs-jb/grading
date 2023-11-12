@@ -1,3 +1,3 @@
-export * from "./Rubric";
-export * from "./Course";
-export * from "./envvar";
+export * from "./Rubric.js";
+export * from "./Course.js";
+export * from "./envvar.js";

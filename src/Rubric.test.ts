@@ -12,7 +12,7 @@ import {
   makeRubricCategory,
   makeRubricItem,
   Score,
-} from "../src/Rubric";
+} from "./Rubric.js";
 
 // TODO: Make into fixture
 function makeTestRubric() {
@@ -108,9 +108,12 @@ test('make score', () => {
   expect(rubricScore).toHaveProperty("categories.1.items.0.score", undefined);
   expect(rubricScore).toHaveProperty("categories.1.items.0.subItems.length", 2);
   expect(rubricScore).toHaveProperty("categories.1.items.0.subItems.0.id");
-  expect(rubricScore).toHaveProperty("categories.1.items.0.subItems.0.itemId", rubric.categories[1].items[0].subItems[0].id);
+
+  if (rubric.categories[1].items[0].subItems) {
+    expect(rubricScore).toHaveProperty("categories.1.items.0.subItems.0.itemId", rubric.categories[1].items[0].subItems[0].id);
+    expect(rubricScore).toHaveProperty("categories.1.items.0.subItems.1.itemId", rubric.categories[1].items[0].subItems[1].id);
+  }
   expect(rubricScore).toHaveProperty("categories.1.items.0.subItems.1.id");
-  expect(rubricScore).toHaveProperty("categories.1.items.0.subItems.1.itemId", rubric.categories[1].items[0].subItems[1].id);
 })
 
 test('score rubric', () => {
@@ -134,9 +137,11 @@ test('score rubric', () => {
   expect(score).toHaveProperty("pointValue", 12.5);
 
   // +0.5 half of a 1.0 subItem
-  rubricScore.categories[1].items[0].subItems[0].score = 0.5;
-  // +0.5 full points on subItem worth 0.5
-  rubricScore.categories[1].items[0].subItems[1].score = 1;
+  if (rubricScore.categories[1].items[0].subItems) {
+    rubricScore.categories[1].items[0].subItems[0].score = 0.5;
+    // +0.5 full points on subItem worth 0.5
+    rubricScore.categories[1].items[0].subItems[1].score = 1;
+  }
   // +1 half of a 2 point item
   rubricScore.categories[1].items[1].score = 0.5;
   // +1 point out of 2 points
