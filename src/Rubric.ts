@@ -118,7 +118,7 @@ export function makeRubricCategory(
     ...props,
   };
 
-  const valid = validateUniqueItemIds(category.items);
+  const [valid] = validateUniqueItemIds(category.items);
   if (!valid) {
     console.log(`Invalid item in category ${category.name} ${category.id}`);
   }
