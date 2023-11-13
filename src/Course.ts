@@ -1,5 +1,10 @@
 import { Rubric, RubricScore } from './Rubric.js';
 
+export interface IdName {
+  id: string;
+  name: string;
+}
+
 export interface Student {
   id: string;
   name: string;
@@ -10,9 +15,8 @@ export interface Student {
 export interface CourseDbObj {
   id: string;
   name: string;
-  studentIds: string[];
-  // gradebook: StudentGrades[];
-  rubricIds: string[];
+  students: IdName[];
+  rubrics: IdName[];
 }
 
 export interface Course {
