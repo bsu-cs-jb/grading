@@ -4,11 +4,17 @@ export interface IdResource {
   id: string;
 }
 
+export interface Score {
+  score: number;
+  pointValue: number;
+}
+
 export interface RubricItemScore {
   id: string;
   itemId: string;
   score?: number;
   subItems?: RubricItemScore[];
+  computedScore?: Score;
 }
 
 export type ScoreType = 'boolean' | 'full_half' | 'points';
@@ -27,6 +33,7 @@ export interface RubricCategoryScore {
   id: string;
   categoryId: string;
   items: RubricItemScore[];
+  computedScore?: Score;
 }
 
 export interface RubricCategory {
@@ -42,6 +49,7 @@ export interface RubricScore extends IdResource {
   studentId?: string;
   studentName?: string;
   categories: RubricCategoryScore[];
+  computedScore?: Score;
 }
 
 export interface Rubric extends IdResource {
@@ -153,11 +161,6 @@ export function makeRubric(
   return rubric;
 }
 
-export interface Score {
-  score: number;
-  pointValue: number;
-}
-
 export function makeItemScore(item: RubricItem): RubricItemScore {
   const score:RubricItemScore = {
     id: urlid(),
@@ -216,10 +219,14 @@ export function scoreItem(item: RubricItem|undefined, score: RubricItemScore): S
     if (!score.subItems) {
       throw new Error('item.subItems but no score.subItems');
     }
-    return scoreItemList(item.subItems, score.subItems);
+    const computedScore = scoreItemList(item.subItems, score.subItems);
+    score.computedScore = computedScore;
+    return computedScore;
   } else {
+
     let pointValue;
     let pointScore = 0;
+
     switch (item.scoreValue) {
     case 'points':
       pointValue = item.pointValue;
@@ -231,17 +238,14 @@ export function scoreItem(item: RubricItem|undefined, score: RubricItemScore): S
       pointValue = 0;
       break;
     }
+
     switch (item.scoreType) {
     case 'boolean':
-      return {
-        score: score.score === undefined ? 0 : (score.score > 0 ? item.pointValue : 0),
-        pointValue,
-      };
+      pointScore = score.score === undefined ? 0 : (score.score > 0 ? item.pointValue : 0);
+      break;
     case 'full_half':
-      return {
-        score: score.score === undefined ? 0 : score.score * item.pointValue,
-        pointValue,
-      };
+      pointScore =  score.score === undefined ? 0 : score.score * item.pointValue;
+      break;
     case 'points':
       if (score.score === undefined) {
         pointScore = 0;
@@ -250,11 +254,13 @@ export function scoreItem(item: RubricItem|undefined, score: RubricItemScore): S
       } else {
         pointScore = score.score;
       }
-      return {
-        score: pointScore,
-        pointValue,
-      };
+      break;
     }
+    score.computedScore = {
+      score: pointScore,
+      pointValue,
+    };
+    return score.computedScore;
   }
 }
 
@@ -265,14 +271,16 @@ export function scoreCategory(category: RubricCategory|undefined, score: RubricC
   if (category.id !== score.categoryId) {
     throw new Error(`item.id "${category.id} !== score.itemId ${score.categoryId}`);
   }
-  return scoreItemList(category.items, score.items);
+  const computedScore = scoreItemList(category.items, score.items);
+  score.computedScore = computedScore;
+  return computedScore;
 }
 
 export function scoreRubric(rubric: Rubric, score: RubricScore): Score {
   if (rubric.categories.length !== score.categories.length) {
     throw new Error(`rubric.categories.length "${rubric.categories.length} !== score.categories.length ${score.categories.length}`);
   }
-  return score.categories.reduce(
+  const computedScore = score.categories.reduce(
     (accum: Score, catScore) => (
       accumulateScores(
         accum, 
@@ -280,6 +288,8 @@ export function scoreRubric(rubric: Rubric, score: RubricScore): Score {
       )),
     { score: 0, pointValue: 0 },
   );
+  score.computedScore = computedScore;
+  return computedScore;
 }
 
 export function defListMap<
@@ -340,11 +350,12 @@ export function updateRubricItemScore(
         updateRubricItemScore(itemScore, item, updatedItemScore),
     );
   }
-  return {
+  const updatedItem = {
     ...itemScore,
     score: scoreValue,
     subItems,
   };
+  return updatedItem;
 }
 
 export function updateRubricCategoryScore(
@@ -366,7 +377,7 @@ export function updateRubricScore(
   rubric: Rubric,
   updatedItemScore: RubricItemScore,
 ): RubricScore {
-  return {
+  const updatedRubricScore = {
     ...score,
     categories: categoryScoreList(
       score.categories,
@@ -379,4 +390,6 @@ export function updateRubricScore(
       ),
     ),
   };
+  scoreRubric(rubric, updatedRubricScore);
+  return updatedRubricScore;
 }
