@@ -1,5 +1,9 @@
 import { urlid } from './genid.js';
 
+export interface IdResource {
+  id: string;
+}
+
 export interface RubricItemScore {
   id: string;
   itemId: string;
@@ -31,13 +35,16 @@ export interface RubricCategory {
   items: RubricItem[];
 }
 
-export interface RubricScore {
+export interface RubricScore extends IdResource {
   id: string;
   rubricId: string;
+  name: string; // Rubric Name
+  studentId?: string;
+  studentName?: string;
   categories: RubricCategoryScore[];
 }
 
-export interface Rubric {
+export interface Rubric extends IdResource {
   id: string;
   name: string;
   categories: RubricCategory[];
@@ -175,6 +182,7 @@ export function makeRubricScore(rubric: Rubric): RubricScore {
   return {
     id: urlid(),
     rubricId: rubric.id,
+    name: rubric.name,
     categories: rubric.categories.map((category) => makeCategoryScore(category)),
   };
 }
