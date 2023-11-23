@@ -15,6 +15,7 @@ export interface RubricItemScore {
   score?: number;
   subItems?: RubricItemScore[];
   computedScore?: Score;
+  comments?: string;
 }
 
 export type ScoreType = 'boolean' | 'full_half' | 'points';
@@ -34,6 +35,7 @@ export interface RubricCategoryScore {
   categoryId: string;
   items: RubricItemScore[];
   computedScore?: Score;
+  comments?: string;
 }
 
 export interface RubricCategory {
@@ -50,6 +52,7 @@ export interface RubricScore extends IdResource {
   studentName?: string;
   categories: RubricCategoryScore[];
   computedScore?: Score;
+  comments?: string;
 }
 
 export interface Rubric extends IdResource {

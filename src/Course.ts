@@ -1,3 +1,4 @@
+import { urlid } from './genid.js';
 import { IdResource, Rubric, RubricScore } from './Rubric.js';
 
 export interface IdName {
@@ -46,6 +47,29 @@ export interface StudentGradeDbObj extends GradeDbObj {
 export interface StudentGrades {
   studentId: string;
   assignments: RubricScore[];
+}
+
+// Create a new type but make all of the properties optional
+type AllOptional<Type> = {
+  [Property in keyof Type]?: Type[Property];
+};
+
+export function makeStudent(
+  props?: AllOptional<Student>
+): Student {
+  return {
+    id: urlid(),
+    name: 'Unnamed student',
+    grades: [],
+    ...props,
+  };
+}
+
+export function toIdName(idName: IdName): IdName {
+  return {
+    id: idName.id,
+    name: idName.name,
+  };
 }
 
 export function findRubric(course:Course, rubricId:string): Rubric|undefined {
