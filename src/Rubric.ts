@@ -2,6 +2,9 @@ import { urlid } from './genid.js';
 
 export interface IdResource {
   id: string;
+  name: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Score {
