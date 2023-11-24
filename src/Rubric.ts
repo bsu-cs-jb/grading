@@ -353,6 +353,7 @@ export type CategoryScoreUpdate = {
   // Optional id for debugging
   id?: string;
   categoryId: string;
+  updateComments?: boolean;
   comments?: string;
 }
 
@@ -403,7 +404,9 @@ export function updateRubricCategoryScore(
     // console.log(
     //   `Updating category ${updatedScore.categoryId} comments: ${updatedScore.comments}`,
     // );
-    updatedComments = updatedScore.comments;
+    if (updatedScore.updateComments) {
+      updatedComments = updatedScore.comments;
+    }
   }
 
   return {

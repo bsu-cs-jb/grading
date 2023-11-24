@@ -267,6 +267,7 @@ test('update rubric category comments', () => {
     {
       update: 'category',
       categoryId: 'cat-1',
+      updateComments: true,
       comments: 'Needs work',
     },
   );
