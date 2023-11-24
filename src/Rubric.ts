@@ -12,13 +12,16 @@ export interface Score {
 export interface RubricItemScore {
   id: string;
   itemId: string;
-  score?: number;
   subItems?: RubricItemScore[];
+  // computedScore is for temporary use and display
+  // it can always be recalculated
   computedScore?: Score;
+  // only score and comments are changed by grading
+  score?: number;
   comments?: string;
 }
 
-export type ScoreType = 'boolean' | 'full_half' | 'points';
+export type ScoreType = 'boolean' | 'full_half' | 'points' | 'subItems';
 export type ScoreValue = 'points' | 'bonus' | 'penalty';
 
 export interface RubricItem {
@@ -334,28 +337,56 @@ export function itemScoreList(
   );
 }
 
+export type ItemScoreUpdate = {
+  update: 'item',
+  itemId: string;
+  // Optional id for debugging
+  id?: string;
+  updateScore?: boolean;
+  score?: number;
+  updateComments?: boolean;
+  comments?: string;
+}
+
+export type CategoryScoreUpdate = {
+  update: 'category',
+  // Optional id for debugging
+  id?: string;
+  categoryId: string;
+  comments?: string;
+}
+
+export type ScoreUpdate = ItemScoreUpdate | CategoryScoreUpdate;
+
 export function updateRubricItemScore(
   itemScore: RubricItemScore,
   item: RubricItem,
-  updatedItemScore: RubricItemScore,
+  updatedScore: ScoreUpdate,
 ): RubricItemScore {
-  // console.log(
-  //   `Updating item score ${itemScore.itemId} ${updatedItemScore.itemId}`,
-  // );
   let scoreValue = itemScore.score;
-  if (itemScore.itemId === updatedItemScore.itemId) {
-    scoreValue = updatedItemScore.score;
+  let updatedComments = itemScore.comments;
+  if (updatedScore.update === 'item' && itemScore.itemId === updatedScore.itemId) {
+    // console.log(
+    //   `Updating item ${updatedScore.itemId} score: ${updatedScore.score} comments: ${updatedScore.comments}`,
+    // );
+    if (updatedScore.updateScore) {
+      scoreValue = updatedScore.score;
+    }
+    if (updatedScore.updateComments) {
+      updatedComments = updatedScore.comments;
+    }
   }
   let subItems = itemScore.subItems;
   if (subItems && item.subItems) {
     subItems = itemScoreList(subItems, item.subItems).map(
       ([itemScore, item]) =>
-        updateRubricItemScore(itemScore, item, updatedItemScore),
+        updateRubricItemScore(itemScore, item, updatedScore),
     );
   }
-  const updatedItem = {
+  const updatedItem: RubricItemScore = {
     ...itemScore,
     score: scoreValue,
+    comments: updatedComments,
     subItems,
   };
   return updatedItem;
@@ -364,21 +395,35 @@ export function updateRubricItemScore(
 export function updateRubricCategoryScore(
   score: RubricCategoryScore,
   category: RubricCategory,
-  updatedItemScore: RubricItemScore,
+  updatedScore: ScoreUpdate,
 ): RubricCategoryScore {
+
+  let updatedComments = score.comments;
+  if (updatedScore.update === 'category' && score.categoryId === updatedScore.categoryId) {
+    // console.log(
+    //   `Updating category ${updatedScore.categoryId} comments: ${updatedScore.comments}`,
+    // );
+    updatedComments = updatedScore.comments;
+  }
+
   return {
     ...score,
+    // Could skip this if updating category comments
     items: itemScoreList(score.items, category.items).map(
       ([itemScore, item]) =>
-        updateRubricItemScore(itemScore, item, updatedItemScore),
+        updateRubricItemScore(itemScore, item, updatedScore),
     ),
+    comments: updatedComments,
   };
 }
 
+/**
+ * Updates RubricItemScore's score and comments
+ */
 export function updateRubricScore(
   score: RubricScore,
   rubric: Rubric,
-  updatedItemScore: RubricItemScore,
+  updatedScore: ScoreUpdate,
 ): RubricScore {
   const updatedRubricScore = {
     ...score,
@@ -389,7 +434,7 @@ export function updateRubricScore(
       updateRubricCategoryScore(
         categoryScore,
         category,
-        updatedItemScore,
+        updatedScore,
       ),
     ),
   };

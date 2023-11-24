@@ -45,12 +45,12 @@ function makeTestRubric() {
             id: 'cat-1-item-0',
             subItems: [
               makeRubricItem({
-                id: 'cat-1-item-1-subItem-0',
+                id: 'cat-1-item-0-subItem-0',
                 scoreType: 'full_half',
                 pointValue: 1,
               }),
               makeRubricItem({
-                id: 'cat-1-item-1-subItem-1',
+                id: 'cat-1-item-0-subItem-1',
                 scoreType: 'boolean',
                 pointValue: 0.5,
               }),
@@ -175,30 +175,108 @@ test('update rubric score', () => {
     rubricScore,
     rubric,
     {
-      id: '',
+      update: 'item',
       itemId: 'cat-0-item-2',
+      updateScore: true,
       score: 2,
+      updateComments: true,
+      comments: 'Good job',
     },
   );
 
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 2);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(rubricScore).toHaveProperty('categories.0.items.2.score', 2);
+  expect(rubricScore).toHaveProperty('categories.0.items.2.comments', 'Good job');
+
+  // Update comment only
+  rubricScore = updateRubricScore(
+    rubricScore,
+    rubric,
+    {
+      update: 'item',
+      itemId: 'cat-0-item-2',
+      updateScore: false,
+      score: 0,
+      updateComments: true,
+      comments: 'Looks good now',
+    },
+  );
+
+  score = scoreRubric(rubric, rubricScore);
+  expect(score).toHaveProperty('score', 2);
+  expect(score).toHaveProperty('pointValue', 12.5);
+  expect(rubricScore).toHaveProperty('categories.0.items.2.score', 2);
+  expect(rubricScore).toHaveProperty('categories.0.items.2.comments', 'Looks good now');
 
   // +0.5 for full score on half point item 
   rubricScore = updateRubricScore(
     rubricScore,
     rubric,
     {
-      id: '',
-      itemId: 'cat-1-item-1-subItem-1',
+      update: 'item',
+      itemId: 'cat-1-item-0-subItem-1',
+      updateScore: true,
       score: 1,
+      comments: 'Ignore this change',
     },
   );
 
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 2.5);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(rubricScore).toHaveProperty('categories.1.items.0.subItems.1.itemId', 'cat-1-item-0-subItem-1');
+  expect(rubricScore).toHaveProperty('categories.1.items.0.subItems.1.score', 1);
+  expect(rubricScore).toHaveProperty('categories.1.items.0.subItems.1.comments', undefined);
+
+  // reset to undefined
+  rubricScore = updateRubricScore(
+    rubricScore,
+    rubric,
+    {
+      update: 'item',
+      itemId: 'cat-0-item-2',
+      updateScore: true,
+      score: undefined,
+      updateComments: true,
+      comments: undefined,
+    },
+  );
+
+  score = scoreRubric(rubric, rubricScore);
+  expect(score).toHaveProperty('score', 0.5);
+  expect(score).toHaveProperty('pointValue', 12.5);
+  expect(rubricScore).toHaveProperty('categories.0.items.2.score', undefined);
+  expect(rubricScore).toHaveProperty('categories.0.items.2.comments', undefined);
+
+});
+
+test('update rubric category comments', () => {
+  const rubric = makeTestRubric();
+  let rubricScore = makeRubricScore(rubric);
+
+  let score: Score = scoreRubric(rubric, rubricScore);
+  // with no points earned or lost, score should be 0
+  expect(score).toHaveProperty('score', 0);
+  expect(score).toHaveProperty('pointValue', 12.5);
+
+  rubricScore = updateRubricScore(
+    rubricScore,
+    rubric,
+    {
+      update: 'category',
+      categoryId: 'cat-1',
+      comments: 'Needs work',
+    },
+  );
+
+  score = scoreRubric(rubric, rubricScore);
+  expect(score).toHaveProperty('score', 0);
+  expect(score).toHaveProperty('pointValue', 12.5);
+  expect(rubricScore).toHaveProperty('categories.1.categoryId', 'cat-1');
+  expect(rubricScore).toHaveProperty('categories.1.comments', 'Needs work');
+
 });
 
 test('validate rubric items', () => {

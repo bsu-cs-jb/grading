@@ -8,6 +8,7 @@
   "scripts": {
     "prebuild": "rm -rf ./dist",
     "build": "tsc",
+    "pretest": "yarn tsc",
     "test": "jest"
   },
   "publishConfig": {
