@@ -1,11 +1,16 @@
-import {expect, test} from '@jest/globals';
+import { expect, test, describe, beforeEach } from '@jest/globals';
 
 import { 
+  Rubric,
+  RubricScore,
   RubricItem,
   validateUniqueItemIds,
   validateCategories,
   validateRubric,
   updateRubricScore,
+  findCategory,
+  findItem,
+  findInRubric,
   scoreRubric,
   makeRubric,
   makeRubricScore,
@@ -344,4 +349,175 @@ test('validate rubric', () => {
   ];
   valid = validateCategories(categories);
   expect(valid).toBeFalsy();
+});
+
+describe('update score when rubric changes', () => {
+  let rubric: Rubric;
+  let rubricScore: RubricScore;
+  let score: Score;
+
+  beforeEach(() => {
+    rubric = makeTestRubric();
+    rubricScore = makeRubricScore(rubric);
+    // score an item to test removal and update
+    rubricScore = updateRubricScore(
+      rubricScore,
+      rubric,
+      {
+        update: 'item',
+        itemId: 'cat-1-item-0-subItem-0',
+        updateScore: true,
+        score: 1,
+      },
+    );
+    score = scoreRubric(rubric, rubricScore);
+
+    // with no points earned or lost, score should be 0
+    expect(score).toHaveProperty('score', 1);
+    expect(score).toHaveProperty('pointValue', 12.5);
+  });
+
+  test('item added', () => {
+    // add an item
+    findCategory(rubric, 'cat-0')?.items.push(
+      makeRubricItem({
+        id: 'cat-0-item-new',
+        scoreType: 'boolean',
+        pointValue: 2,
+      }),
+    );
+    rubricScore = updateRubricScore(rubricScore, rubric);
+
+    score = scoreRubric(rubric, rubricScore);
+    expect(score).toHaveProperty('score', 1);
+    expect(score).toHaveProperty('pointValue', 14.5);
+    expect(rubric).toHaveProperty('categories.0.items.length', 4);
+    expect(rubricScore).toHaveProperty('categories.0.items.length', 4);
+    expect(rubricScore).toHaveProperty('categories.0.items.3.score', undefined);
+
+    // +2 points
+    rubricScore = updateRubricScore(
+      rubricScore,
+      rubric,
+      {
+        update: 'item',
+        itemId: 'cat-0-item-new',
+        updateScore: true,
+        score: 1,
+      },
+    );
+
+    score = scoreRubric(rubric, rubricScore);
+    expect(score).toHaveProperty('score', 3);
+    expect(score).toHaveProperty('pointValue', 14.5);
+    expect(rubricScore).toHaveProperty('categories.0.items.3.score', 1);
+    expect(rubricScore).toHaveProperty('categories.0.items.3.computedScore.score', 2);
+    expect(rubricScore).toHaveProperty('categories.0.items.3.computedScore.pointValue', 2);
+  });
+
+  test('subitem added', () => {
+    // add a subitem
+    const cat1 = findCategory(rubric, 'cat-1');
+    expect(cat1).toBeDefined();
+    if (cat1) {
+      const item0 = findItem(cat1.items, 'cat-1-item-0');
+      console.log('Looking for item:', item0, cat1.items);
+      expect(item0).toBeDefined();
+      expect(item0?.subItems).toBeDefined();
+      if (item0 && item0.subItems) {
+        item0.subItems.push(
+          makeRubricItem({
+            id: 'cat-1-item-0-subItem-new',
+            name: 'New subItem',
+            scoreType: 'full_half',
+            pointValue: 3,
+          }),
+        );
+      }
+    }
+    rubricScore = updateRubricScore(rubricScore, rubric, {
+      update: 'item',
+      itemId: 'cat-1-item-0-subItem-new',
+      updateScore: true,
+      score: 0.5,
+    });
+
+    score = scoreRubric(rubric, rubricScore);
+    expect(score).toHaveProperty('score', 2.5);
+    expect(score).toHaveProperty('pointValue', 15.5);
+    expect(rubric).toHaveProperty('categories.1.items.0.subItems.length', 3);
+    expect(rubricScore).toHaveProperty('categories.1.items.0.subItems.length', 3);
+
+    let item = findInRubric(rubric, { itemId: 'cat-1-item-0-subItem-new' });
+    expect(item).toBeDefined();
+    expect(item).toHaveProperty('pointValue', 3);
+    item = findInRubric(rubricScore, { itemId: 'cat-1-item-0-subItem-new' });
+    expect(item).toBeDefined();
+    expect(item).toHaveProperty('itemId', 'cat-1-item-0-subItem-new');
+  });
+
+  test('item removed', () => {
+    score = scoreRubric(rubric, rubricScore);
+    expect(score).toHaveProperty('score', 1);
+    expect(score).toHaveProperty('pointValue', 12.5);
+
+    // Them remove the item from the rubric
+    findCategory(rubric, 'cat-0')?.items.shift();
+    rubricScore = updateRubricScore(rubricScore, rubric);
+
+    score = scoreRubric(rubric, rubricScore);
+    expect(score).toHaveProperty('score', 1);
+    expect(score).toHaveProperty('pointValue', 10.5);
+    expect(rubric).toHaveProperty('categories.0.items.length', 2);
+    expect(rubricScore).toHaveProperty('categories.0.items.length', 2);
+
+    let item = findInRubric(rubric, { itemId: 'cat-0-item-0' });
+    expect(item).toBeUndefined();
+    item = findInRubric(rubricScore, { itemId: 'cat-0-item-0' });
+    expect(item).toBeUndefined();
+  });
+
+  test('category added', () => {
+    // add a category
+    rubric.categories.push(
+      makeRubricCategory({
+        id: 'cat-new',
+        items: [
+          makeRubricItem({
+            id: 'cat-new-item-0',
+            scoreType: 'boolean',
+            pointValue: 2,
+          }),
+          makeRubricItem({
+            id: 'cat-new-item-1',
+            scoreType: 'full_half',
+            scoreValue: 'penalty',
+            pointValue: -1,
+          }),
+          makeRubricItem({
+            id: 'cat-new-item-2',
+            scoreType: 'points',
+            scoreValue: 'bonus',
+            pointValue: 4,
+          }),
+        ]
+      }),
+    );
+    rubricScore = updateRubricScore(rubricScore, rubric);
+
+    score = scoreRubric(rubric, rubricScore);
+    expect(score).toHaveProperty('score', 1);
+    expect(score).toHaveProperty('pointValue', 14.5);
+    expect(rubricScore).toHaveProperty('categories.2.items.length', 3);
+  });
+
+  test('category removed', () => {
+    // remove a category
+    rubric.categories.pop();
+    rubricScore = updateRubricScore(rubricScore, rubric);
+
+    score = scoreRubric(rubric, rubricScore);
+    expect(score).toHaveProperty('score', 0);
+    expect(score).toHaveProperty('pointValue', 7);
+  });
 });

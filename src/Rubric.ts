@@ -1,4 +1,6 @@
 import { urlid } from './genid.js';
+import { assert } from './utils.js';
+import _ from 'lodash';
 
 export interface IdResource {
   id: string;
@@ -206,6 +208,68 @@ function accumulateScores(accum:Score, score: Score): Score {
   };
 }
 
+type RubricTypes = RubricItem | RubricCategory | RubricItemScore | RubricCategoryScore;
+
+export function findInRubric(rubric:Rubric|RubricScore, { itemId, categoryId }: { itemId?:string; categoryId?: string }):RubricTypes|undefined {
+  if (categoryId) {
+    return findCategory(rubric, categoryId);
+  } else if (itemId) {
+    for (const cat of rubric.categories) {
+      for (const item of cat.items) {
+        if ('itemId' in item) {
+          if (item.itemId === itemId) {
+            return item;
+          }
+          if (item.subItems) {
+            return findItem(item.subItems, itemId);
+          }
+        } else {
+          if (item.id === itemId) {
+            return item;
+          }
+          if (item.subItems) {
+            return findItem(item.subItems, itemId);
+          }
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
+export function findScoreItem(items: RubricItemScore[], itemId:string):RubricItemScore|undefined {
+  return _.find(items, { itemId });
+}
+
+export function findCategoryScore(categories: RubricCategoryScore[], categoryId:string):RubricCategoryScore|undefined {
+  return _.find(categories, { categoryId });
+}
+
+export function findItem<T extends (RubricItem|RubricItemScore)>(items: T[], id:string):T|undefined {
+  if (items.length === 0) {
+    console.log(`findItem(undefined, ${id})`);
+    return undefined;
+  } else if ('itemId' in items[0]) {
+    console.log(`findItem(${items.length}, ${id}) as RubricItemScore`);
+    // RubricItemScore[]
+    return _.find(items, { itemId: id }) as T|undefined;
+  } else {
+    // Rubric
+    console.log(`findItem(${items.length}, ${id}) as RubricItem`);
+    return _.find(items, { id }) as T|undefined;
+  }
+}
+
+export function findCategory<T extends (Rubric|RubricScore), U extends T['categories'][0]>(rubric: T, categoryId:string):U|undefined {
+  if ('rubricId' in rubric) {
+    // RubricScore
+    return _.find(rubric.categories, { categoryId }) as U|undefined;
+  } else {
+    // Rubric
+    return _.find(rubric.categories, { id: categoryId }) as U|undefined;
+  }
+}
+
 export function scoreItemList(items: RubricItem[], scores: RubricItemScore[]): Score {
   if (items.length !== scores.length) {
     throw new Error(`items.length "${items.length} !== scores.length ${scores.length}`);
@@ -365,11 +429,11 @@ export type ScoreUpdate = ItemScoreUpdate | CategoryScoreUpdate;
 export function updateRubricItemScore(
   itemScore: RubricItemScore,
   item: RubricItem,
-  updatedScore: ScoreUpdate,
+  updatedScore?: ScoreUpdate,
 ): RubricItemScore {
   let scoreValue = itemScore.score;
   let updatedComments = itemScore.comments;
-  if (updatedScore.update === 'item' && itemScore.itemId === updatedScore.itemId) {
+  if (updatedScore && updatedScore.update === 'item' && itemScore.itemId === updatedScore.itemId) {
     // console.log(
     //   `Updating item ${updatedScore.itemId} score: ${updatedScore.score} comments: ${updatedScore.comments}`,
     // );
@@ -396,14 +460,37 @@ export function updateRubricItemScore(
   return updatedItem;
 }
 
+function fixItemScoreList(itemList?: RubricItem[], scoreItemList?: RubricItemScore[]): RubricItemScore[]|undefined {
+  if (!itemList) {
+    return undefined;
+  }
+  if (!scoreItemList) {
+    // use makeItemScore to make the subitems
+    const tempScore = makeItemScore(makeRubricItem({ subItems: itemList }));
+    return tempScore.subItems || [];
+  }
+  const newScoreList: RubricItemScore[] = itemList.map((item: RubricItem) => {
+    const foundScoreItem = findScoreItem(scoreItemList, item.id);
+    if (foundScoreItem) {
+      return {
+        ...foundScoreItem,
+        subItems: fixItemScoreList(item.subItems, foundScoreItem.subItems),
+      };
+    } else {
+      return makeItemScore(item);
+    }
+  });
+  return newScoreList;
+}
+
 export function updateRubricCategoryScore(
   score: RubricCategoryScore,
   category: RubricCategory,
-  updatedScore: ScoreUpdate,
+  updatedScore?: ScoreUpdate,
 ): RubricCategoryScore {
 
   let updatedComments = score.comments;
-  if (updatedScore.update === 'category' && score.categoryId === updatedScore.categoryId) {
+  if (updatedScore && updatedScore.update === 'category' && score.categoryId === updatedScore.categoryId) {
     // console.log(
     //   `Updating category ${updatedScore.categoryId} comments: ${updatedScore.comments}`,
     // );
@@ -412,15 +499,37 @@ export function updateRubricCategoryScore(
     }
   }
 
+
+  let updatedScoreItemList = fixItemScoreList(category.items, score.items);
+  if (!updatedScoreItemList) {
+    assert(Boolean(updatedScoreItemList));
+    updatedScoreItemList = [];
+  }
+
   return {
     ...score,
     // Could skip this if updating category comments
-    items: itemScoreList(score.items, category.items).map(
+    items: itemScoreList(updatedScoreItemList, category.items).map(
       ([itemScore, item]) =>
         updateRubricItemScore(itemScore, item, updatedScore),
     ),
     comments: updatedComments,
   };
+}
+
+function fixCategoryScoreList(rubric: Rubric, score: RubricScore): RubricCategoryScore[] {
+  const newScoreList: RubricCategoryScore[] = rubric.categories.map((category: RubricCategory) => {
+    const foundScore = findCategory(score, category.id);
+    if (foundScore) {
+      return {
+        ...foundScore,
+        items: fixItemScoreList(category.items, foundScore.items) || [],
+      };
+    } else {
+      return makeCategoryScore(category);
+    }
+  });
+  return newScoreList;
 }
 
 /**
@@ -429,12 +538,16 @@ export function updateRubricCategoryScore(
 export function updateRubricScore(
   score: RubricScore,
   rubric: Rubric,
-  updatedScore: ScoreUpdate,
+  updatedScore?: ScoreUpdate,
 ): RubricScore {
+
+  // TODO: handle category changes here
+  const updatedCategories = fixCategoryScoreList(rubric, score);
+
   const updatedRubricScore = {
     ...score,
     categories: categoryScoreList(
-      score.categories,
+      updatedCategories,
       rubric.categories,
     ).map(([categoryScore, category]) =>
       updateRubricCategoryScore(
