@@ -58,6 +58,8 @@ export interface RubricScore extends IdResource {
   name: string; // Rubric Name
   studentId?: string;
   studentName?: string;
+  courseId?: string;
+  courseName?: string;
   categories: RubricCategoryScore[];
   computedScore?: Score;
   comments?: string;
