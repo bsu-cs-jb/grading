@@ -95,45 +95,61 @@ type RubricCategoryOptional = AllOptional<RubricCategory>;
 
 type RubricIdMap = Record<string, RubricItem[]>;
 
-export function validateUniqueItemIds(items: RubricItem[], idMap?:RubricIdMap): [boolean, RubricIdMap] {
-  if (idMap === undefined) {
-    idMap = {};
+export interface RubricValidationResult {
+  valid: boolean;
+  duplicateItemIds: string[];
+  duplicateCategoryIds: string[];
+}
+
+export interface RubricValidationStore extends RubricValidationResult {
+  itemIdMap: RubricIdMap;
+}
+
+function ensureValidation(validation?: RubricValidationStore): RubricValidationStore {
+  if (validation === undefined) {
+    return {
+      valid: true,
+      itemIdMap: {},
+      duplicateItemIds: [],
+      duplicateCategoryIds: [],
+    };
+  } else {
+    return validation;
   }
-  let allUnique = true;
-  let subItemUnique = true;
+}
+
+export function validateUniqueItemIds(items: RubricItem[], validation?: RubricValidationStore): RubricValidationStore {
+  validation = ensureValidation(validation);
 
   for (const item of items) {
-    if (item.id in idMap) {
-      console.log(`Duplicate item ${idMap[item.id].length} ${item.id} ${item.name}.`);
-      idMap[item.id].push(item);
-      allUnique = false;
+    if (item.id in validation.itemIdMap) {
+      console.log(`Duplicate item ${validation.itemIdMap[item.id].length} ${item.id} ${item.name}.`);
+      validation.itemIdMap[item.id].push(item);
+      validation.valid = false;
+      validation.duplicateItemIds.push(item.id);
     } else {
-      idMap[item.id] = [item];
+      validation.itemIdMap[item.id] = [item];
     }
     if (item.subItems) {
-      [subItemUnique, idMap] = validateUniqueItemIds(item.subItems, idMap);
-      allUnique &&= subItemUnique;
+      validation = validateUniqueItemIds(item.subItems, validation);
     }
   }
 
-  return [allUnique, idMap];
+  return validation;
 }
 
-export function validateCategories(categories: RubricCategory[]): boolean {
-  let idMap: Record<string, RubricItem[]> = {};
-  let allUnique = true;
-  let subItemUnique = true;
+export function validateCategories(categories: RubricCategory[]): RubricValidationStore {
+  let validation = ensureValidation();
 
   for (const category of categories) {
-    [subItemUnique, idMap] = validateUniqueItemIds(category.items, idMap);
-    allUnique &&= subItemUnique;
+    validation = validateUniqueItemIds(category.items, validation);
   }
 
-  return allUnique;
+  return validation;
 }
 
-export function validateRubric(rubric: Rubric): boolean {
-  return validateCategories(rubric.categories);
+export function validateRubric(rubric: Rubric): RubricValidationResult {
+  return _.omit(validateCategories(rubric.categories), ['itemIdMap']);
 }
 
 export function makeRubricCategory(
@@ -146,7 +162,7 @@ export function makeRubricCategory(
     ...props,
   };
 
-  const [valid] = validateUniqueItemIds(category.items);
+  const { valid } = validateUniqueItemIds(category.items);
   if (!valid) {
     console.log(`Invalid item in category ${category.name} ${category.id}`);
   }
@@ -166,7 +182,7 @@ export function makeRubric(
     ...props,
   };
 
-  const valid = validateCategories(rubric.categories);
+  const { valid } = validateCategories(rubric.categories);
   if (!valid) {
     console.log(`Invalid item in rubric ${rubric.name} ${rubric.id}`);
   }

@@ -292,14 +292,14 @@ test('validate rubric items', () => {
     makeRubricItem({ id: 'cat-0-item-0' }),
     makeRubricItem({ id: 'cat-0-item-1' }),
   ];
-  let [valid] = validateUniqueItemIds(items);
+  let { valid } = validateUniqueItemIds(items);
   expect(valid).toBeTruthy();
 
   items = [
     makeRubricItem({ id: 'cat-0-item-0' }),
     makeRubricItem({ id: 'cat-0-item-0' }),
   ];
-  [valid] = validateUniqueItemIds(items);
+  valid = validateUniqueItemIds(items).valid;
   expect(valid).toBeFalsy();
 
   items = [
@@ -310,7 +310,7 @@ test('validate rubric items', () => {
         makeRubricItem({ id: 'cat-0-subItem-1' }),
       ] }),
   ];
-  [valid] = validateUniqueItemIds(items);
+  valid = validateUniqueItemIds(items).valid;
   expect(valid).toBeTruthy();
 
   items = [
@@ -321,7 +321,7 @@ test('validate rubric items', () => {
         makeRubricItem({ id: 'cat-0-item-0' }),
       ] }),
   ];
-  [valid] = validateUniqueItemIds(items);
+  valid = validateUniqueItemIds(items).valid;
   expect(valid).toBeFalsy();
 
 });
@@ -330,7 +330,7 @@ test('validate rubric', () => {
   let valid: boolean = true;
 
   const rubric = makeTestRubric();
-  valid = validateRubric(rubric);
+  valid = validateRubric(rubric).valid;
   expect(valid).toBeTruthy();
 
   const categories = [
@@ -347,7 +347,7 @@ test('validate rubric', () => {
       ],
     }),
   ];
-  valid = validateCategories(categories);
+  valid = validateCategories(categories).valid;
   expect(valid).toBeFalsy();
 });
 
@@ -421,7 +421,7 @@ describe('update score when rubric changes', () => {
     expect(cat1).toBeDefined();
     if (cat1) {
       const item0 = findItem(cat1.items, 'cat-1-item-0');
-      console.log('Looking for item:', item0, cat1.items);
+      // console.log('Looking for item:', item0, cat1.items);
       expect(item0).toBeDefined();
       expect(item0?.subItems).toBeDefined();
       if (item0 && item0.subItems) {
