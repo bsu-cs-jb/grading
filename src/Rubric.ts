@@ -12,6 +12,8 @@ export interface IdResource {
 export interface Score {
   score: number;
   pointValue: number;
+  // number of items that have undefined score
+  unscoredItems: number;
 }
 
 export interface RubricItemScore {
@@ -223,6 +225,7 @@ function accumulateScores(accum:Score, score: Score): Score {
   return {
     score: accum.score + score.score,
     pointValue: accum.pointValue + score.pointValue,
+    unscoredItems: accum.unscoredItems + score.unscoredItems,
   };
 }
 
@@ -295,7 +298,7 @@ export function scoreItemList(items: RubricItem[], scores: RubricItemScore[]): S
   return scores.reduce(
     (accum: Score, score) => (
       accumulateScores(accum, scoreItem(items?.find((item) => item.id === score.itemId), score))),
-    { score: 0, pointValue: 0 },
+    { score: 0, pointValue: 0, unscoredItems: 0 },
   );
 }
 
@@ -350,6 +353,7 @@ export function scoreItem(item: RubricItem|undefined, score: RubricItemScore): S
     score.computedScore = {
       score: pointScore,
       pointValue,
+      unscoredItems: (score.score === undefined) ? 1: 0,
     };
     return score.computedScore;
   }
@@ -377,7 +381,7 @@ export function scoreRubric(rubric: Rubric, score: RubricScore): Score {
         accum, 
         scoreCategory(rubric.categories?.find((category) => category.id === catScore.categoryId), catScore)
       )),
-    { score: 0, pointValue: 0 },
+    { score: 0, pointValue: 0, unscoredItems: 0 },
   );
   score.computedScore = computedScore;
   return computedScore;

@@ -140,6 +140,7 @@ test('score rubric', () => {
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 4.5);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 6);
 
   // +0.5 half of a 1.0 subItem
   if (rubricScore.categories[1].items[0].subItems) {
@@ -154,6 +155,7 @@ test('score rubric', () => {
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 7.5);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 2);
 
   // +1 point bonus out of 2
   rubricScore.categories[1].items[3].score = 1;
@@ -163,6 +165,7 @@ test('score rubric', () => {
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 6.5);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 0);
 });
 
 
@@ -174,6 +177,7 @@ test('update rubric score', () => {
   // with no points earned or lost, score should be 0
   expect(score).toHaveProperty('score', 0);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 9);
 
   // +2 points out of 4
   rubricScore = updateRubricScore(
@@ -192,6 +196,7 @@ test('update rubric score', () => {
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 2);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 8);
   expect(rubricScore).toHaveProperty('categories.0.items.2.score', 2);
   expect(rubricScore).toHaveProperty('categories.0.items.2.comments', 'Good job');
 
@@ -212,6 +217,7 @@ test('update rubric score', () => {
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 2);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 8);
   expect(rubricScore).toHaveProperty('categories.0.items.2.score', 2);
   expect(rubricScore).toHaveProperty('categories.0.items.2.comments', 'Looks good now');
 
@@ -231,6 +237,7 @@ test('update rubric score', () => {
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 2.5);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 7);
   expect(rubricScore).toHaveProperty('categories.1.items.0.subItems.1.itemId', 'cat-1-item-0-subItem-1');
   expect(rubricScore).toHaveProperty('categories.1.items.0.subItems.1.score', 1);
   expect(rubricScore).toHaveProperty('categories.1.items.0.subItems.1.comments', undefined);
@@ -252,6 +259,7 @@ test('update rubric score', () => {
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 0.5);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 8);
   expect(rubricScore).toHaveProperty('categories.0.items.2.score', undefined);
   expect(rubricScore).toHaveProperty('categories.0.items.2.comments', undefined);
 
@@ -265,6 +273,7 @@ test('update rubric category comments', () => {
   // with no points earned or lost, score should be 0
   expect(score).toHaveProperty('score', 0);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 9);
 
   rubricScore = updateRubricScore(
     rubricScore,
@@ -280,6 +289,7 @@ test('update rubric category comments', () => {
   score = scoreRubric(rubric, rubricScore);
   expect(score).toHaveProperty('score', 0);
   expect(score).toHaveProperty('pointValue', 12.5);
+  expect(score).toHaveProperty('unscoredItems', 9);
   expect(rubricScore).toHaveProperty('categories.1.categoryId', 'cat-1');
   expect(rubricScore).toHaveProperty('categories.1.comments', 'Needs work');
 
@@ -375,6 +385,7 @@ describe('update score when rubric changes', () => {
     // with no points earned or lost, score should be 0
     expect(score).toHaveProperty('score', 1);
     expect(score).toHaveProperty('pointValue', 12.5);
+    expect(score).toHaveProperty('unscoredItems', 8);
   });
 
   test('item added', () => {
@@ -391,6 +402,7 @@ describe('update score when rubric changes', () => {
     score = scoreRubric(rubric, rubricScore);
     expect(score).toHaveProperty('score', 1);
     expect(score).toHaveProperty('pointValue', 14.5);
+    expect(score).toHaveProperty('unscoredItems', 9);
     expect(rubric).toHaveProperty('categories.0.items.length', 4);
     expect(rubricScore).toHaveProperty('categories.0.items.length', 4);
     expect(rubricScore).toHaveProperty('categories.0.items.3.score', undefined);
@@ -410,6 +422,7 @@ describe('update score when rubric changes', () => {
     score = scoreRubric(rubric, rubricScore);
     expect(score).toHaveProperty('score', 3);
     expect(score).toHaveProperty('pointValue', 14.5);
+    expect(score).toHaveProperty('unscoredItems', 8);
     expect(rubricScore).toHaveProperty('categories.0.items.3.score', 1);
     expect(rubricScore).toHaveProperty('categories.0.items.3.computedScore.score', 2);
     expect(rubricScore).toHaveProperty('categories.0.items.3.computedScore.pointValue', 2);
@@ -445,6 +458,7 @@ describe('update score when rubric changes', () => {
     score = scoreRubric(rubric, rubricScore);
     expect(score).toHaveProperty('score', 2.5);
     expect(score).toHaveProperty('pointValue', 15.5);
+    expect(score).toHaveProperty('unscoredItems', 8);
     expect(rubric).toHaveProperty('categories.1.items.0.subItems.length', 3);
     expect(rubricScore).toHaveProperty('categories.1.items.0.subItems.length', 3);
 
@@ -457,17 +471,14 @@ describe('update score when rubric changes', () => {
   });
 
   test('item removed', () => {
-    score = scoreRubric(rubric, rubricScore);
-    expect(score).toHaveProperty('score', 1);
-    expect(score).toHaveProperty('pointValue', 12.5);
-
-    // Them remove the item from the rubric
+    // Then remove the item from the rubric
     findCategory(rubric, 'cat-0')?.items.shift();
     rubricScore = updateRubricScore(rubricScore, rubric);
 
     score = scoreRubric(rubric, rubricScore);
     expect(score).toHaveProperty('score', 1);
     expect(score).toHaveProperty('pointValue', 10.5);
+    expect(score).toHaveProperty('unscoredItems', 7);
     expect(rubric).toHaveProperty('categories.0.items.length', 2);
     expect(rubricScore).toHaveProperty('categories.0.items.length', 2);
 
@@ -508,6 +519,7 @@ describe('update score when rubric changes', () => {
     score = scoreRubric(rubric, rubricScore);
     expect(score).toHaveProperty('score', 1);
     expect(score).toHaveProperty('pointValue', 14.5);
+    expect(score).toHaveProperty('unscoredItems', 11);
     expect(rubricScore).toHaveProperty('categories.2.items.length', 3);
   });
 
@@ -519,5 +531,6 @@ describe('update score when rubric changes', () => {
     score = scoreRubric(rubric, rubricScore);
     expect(score).toHaveProperty('score', 0);
     expect(score).toHaveProperty('pointValue', 7);
+    expect(score).toHaveProperty('unscoredItems', 3);
   });
 });
