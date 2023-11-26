@@ -37,6 +37,7 @@ export interface RubricItem {
   scoreType: ScoreType;
   scoreValue: ScoreValue;
   pointValue: number;
+  pointIncrement?: number;
   subItems?: RubricItem[];
 }
 
