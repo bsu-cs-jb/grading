@@ -232,25 +232,25 @@ function accumulateScores(accum:Score, score: Score): Score {
 
 type RubricTypes = RubricItem | RubricCategory | RubricItemScore | RubricCategoryScore;
 
-export function findInRubric(rubric:Rubric|RubricScore, { itemId, categoryId }: { itemId?:string; categoryId?: string }):RubricTypes|undefined {
+export function findInRubric<T extends RubricTypes>(rubric:Rubric|RubricScore, { itemId, categoryId }: { itemId?:string; categoryId?: string }):T|undefined {
   if (categoryId) {
-    return findCategory(rubric, categoryId);
+    return findCategory(rubric, categoryId) as T;
   } else if (itemId) {
     for (const cat of rubric.categories) {
       for (const item of cat.items) {
         if ('itemId' in item) {
           if (item.itemId === itemId) {
-            return item;
+            return item as T;
           }
           if (item.subItems) {
-            return findItem(item.subItems, itemId);
+            return findItem(item.subItems, itemId) as T;
           }
         } else {
           if (item.id === itemId) {
-            return item;
+            return item as T;
           }
           if (item.subItems) {
-            return findItem(item.subItems, itemId);
+            return findItem(item.subItems, itemId) as T;
           }
         }
       }

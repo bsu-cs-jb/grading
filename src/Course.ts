@@ -9,6 +9,8 @@ export interface IdName {
 export interface Student extends IdResource {
   id: string;
   name: string;
+  // is a test student
+  test?: boolean;
   githubUsername?: string;
   grades: CourseGradeDbObj[];
 }
