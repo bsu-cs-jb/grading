@@ -234,7 +234,11 @@ type RubricTypes = RubricItem | RubricCategory | RubricItemScore | RubricCategor
 
 export function findInRubric<T extends RubricTypes>(rubric:Rubric|RubricScore, { itemId, categoryId }: { itemId?:string; categoryId?: string }):T|undefined {
   if (categoryId) {
-    return findCategory(rubric, categoryId) as T;
+    const result = findCategory(rubric, categoryId) as T;
+    if (!result) {
+      console.log(`Failed to find category ${categoryId} in rubric ${rubric.name} - ${rubric.id}`);
+    }
+    return result;
   } else if (itemId) {
     for (const cat of rubric.categories) {
       for (const item of cat.items) {
@@ -243,18 +247,25 @@ export function findInRubric<T extends RubricTypes>(rubric:Rubric|RubricScore, {
             return item as T;
           }
           if (item.subItems) {
-            return findItem(item.subItems, itemId) as T;
+            const found = findItem(item.subItems, itemId) as T;
+            if (found) {
+              return found;
+            }
           }
         } else {
           if (item.id === itemId) {
             return item as T;
           }
           if (item.subItems) {
-            return findItem(item.subItems, itemId) as T;
+            const found = findItem(item.subItems, itemId) as T;
+            if (found) {
+              return found;
+            }
           }
         }
       }
     }
+    console.log(`Failed to find item ${itemId} in rubric ${rubric.name} - ${rubric.id}`);
   }
   return undefined;
 }
@@ -269,15 +280,15 @@ export function findCategoryScore(categories: RubricCategoryScore[], categoryId:
 
 export function findItem<T extends (RubricItem|RubricItemScore)>(items: T[], id:string):T|undefined {
   if (items.length === 0) {
-    console.log(`findItem(undefined, ${id})`);
+    // console.log(`findItem([], ${id})`);
     return undefined;
   } else if ('itemId' in items[0]) {
-    console.log(`findItem(${items.length}, ${id}) as RubricItemScore`);
+    // console.log(`findItem(${items.length}, ${id}) as RubricItemScore`);
     // RubricItemScore[]
     return _.find(items, { itemId: id }) as T|undefined;
   } else {
     // Rubric
-    console.log(`findItem(${items.length}, ${id}) as RubricItem`);
+    // console.log(`findItem(${items.length}, ${id}) as RubricItem`);
     return _.find(items, { id }) as T|undefined;
   }
 }
