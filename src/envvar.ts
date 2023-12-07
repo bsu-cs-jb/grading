@@ -1,4 +1,4 @@
-const TRUTH_VALUES = ['true', '1', 'yes'];
+const TRUTH_VALUES = ['true', '1', 'yes', 'on'];
 
 export function getConfigBoolean(
   name:  string,
@@ -10,6 +10,9 @@ export function getConfigBoolean(
     return default_;
   }
   const normValue = value.trim().toLowerCase();
+  if (normValue === '') {
+    return default_;
+  }
   if (truth_values.includes(normValue)) {
     return true;
   } else {
@@ -66,8 +69,8 @@ export interface BaseConfig {
 export class BaseConfigImpl {
   public get LOGGING_ENABLED():boolean {
     return getConfigBoolean('LOGGING_ENABLED', true);
-
   }
+
   public get LOG_LEVEL():LOG_LEVEL {
     const value = getConfig('LOG_LEVEL', DEFAULT_LOG_LEVEL).toUpperCase();
     if (isLogLevel(value)) {

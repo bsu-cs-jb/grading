@@ -224,8 +224,8 @@ export function makeRubricScore(rubric: Rubric): RubricScore {
 
 function accumulateScores(accum:Score, score: Score): Score {
   return {
-    score: accum.score + score.score,
-    pointValue: accum.pointValue + score.pointValue,
+    score: _.round(accum.score + score.score, 4),
+    pointValue: _.round(accum.pointValue + score.pointValue, 4),
     unscoredItems: accum.unscoredItems + score.unscoredItems,
   };
 }
