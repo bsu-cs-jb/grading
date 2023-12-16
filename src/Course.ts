@@ -56,9 +56,7 @@ type AllOptional<Type> = {
   [Property in keyof Type]?: Type[Property];
 };
 
-export function makeStudent(
-  props?: AllOptional<Student>
-): Student {
+export function makeStudent(props?: AllOptional<Student>): Student {
   return {
     id: urlid(),
     name: 'Unnamed student',
@@ -74,6 +72,9 @@ export function toIdName(idName: IdName): IdName {
   };
 }
 
-export function findRubric(course:Course, rubricId:string): Rubric|undefined {
+export function findRubric(
+  course: Course,
+  rubricId: string,
+): Rubric | undefined {
   return course.rubrics.find((rubric) => rubric.id == rubricId);
 }

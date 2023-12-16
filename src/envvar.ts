@@ -1,7 +1,7 @@
 const TRUTH_VALUES = ['true', '1', 'yes', 'on'];
 
 export function getConfigBoolean(
-  name:  string,
+  name: string,
   default_: boolean,
   truth_values: string[] = TRUTH_VALUES,
 ): boolean {
@@ -20,22 +20,26 @@ export function getConfigBoolean(
   }
 }
 
-export function getConfig<T>(name: string, default_:T):T{
+export function getConfig<T>(
+  name: string,
+  default_: T,
+  convert: (value: string) => T = (v) => v as T,
+): T {
   const value = process.env[name];
   if (value === undefined) {
     return default_;
   } else {
-    return value as T;
+    return convert(value);
   }
 }
 
-export const LOG_LEVELS = <const>['INFO','DEBUG','ERROR'];
-export type LOG_LEVEL = typeof LOG_LEVELS[number];
+export const LOG_LEVELS = <const>['INFO', 'DEBUG', 'ERROR'];
+export type LOG_LEVEL = (typeof LOG_LEVELS)[number];
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isInArray<T, A extends T>(
   item: T,
-  array: ReadonlyArray<A>
+  array: ReadonlyArray<A>,
 ): item is A {
   return array.includes(item as A);
 }
@@ -46,7 +50,10 @@ function isLogLevel_1(value: string): value is LOG_LEVEL {
   return LOG_LEVELS.includes(value as any);
 }
 
-export function isType<T extends string>(value: string, values:readonly T[]): value is T {
+export function isType<T extends string>(
+  value: string,
+  values: readonly T[],
+): value is T {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return values.includes(value as any);
 }
@@ -67,11 +74,11 @@ export interface BaseConfig {
 }
 
 export class BaseConfigImpl {
-  public get LOGGING_ENABLED():boolean {
+  public get LOGGING_ENABLED(): boolean {
     return getConfigBoolean('LOGGING_ENABLED', true);
   }
 
-  public get LOG_LEVEL():LOG_LEVEL {
+  public get LOG_LEVEL(): LOG_LEVEL {
     const value = getConfig('LOG_LEVEL', DEFAULT_LOG_LEVEL).toUpperCase();
     if (isLogLevel(value)) {
       return value;

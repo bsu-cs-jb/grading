@@ -6,12 +6,8 @@ const ALPHA = ALPHA_UPPER + ALPHA_LOWER;
 const NUMBERS = '0123456789';
 const SYMBOLS = '~!@#$%^&*()[]{}<>/|,.+=-?:;_';
 const DICTIONARY = NUMBERS + ALPHA + SYMBOLS;
-const B64_URL_DICT = (
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  + 'abcdefghijklmnopqrstuvwxyz'
-  + NUMBERS
-  + '-_'
-);
+const B64_URL_DICT =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + NUMBERS + '-_';
 const URL_SAFE_DICTIONARY = B64_URL_DICT;
 
 export function gennum(): number {
@@ -27,7 +23,11 @@ export function divmod(x: number, y: number): [div: number, rem: number] {
   return [div, rem];
 }
 
-export function encodeNumber(n: number, length?: number, dictionary?: string): string {
+export function encodeNumber(
+  n: number,
+  length?: number,
+  dictionary?: string,
+): string {
   if (!dictionary) {
     dictionary = DICTIONARY;
   }

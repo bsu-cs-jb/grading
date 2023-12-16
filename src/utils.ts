@@ -8,7 +8,6 @@ export function jsonhtml(data: any): string {
   return `<pre>${json(data)}</pre>`;
 }
 
-
 export function range(startOrEnd: number, end?: number): number[] {
   if (end) {
     return Array.from({ length: end - startOrEnd }, (v, i) => startOrEnd + i);
@@ -18,7 +17,7 @@ export function range(startOrEnd: number, end?: number): number[] {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function assert(assertion:boolean, msg?:any, ...args: any[]) {
+export function assert(assertion: boolean, msg?: any, ...args: any[]) {
   console.assert(assertion, msg, ...args);
 }
 
