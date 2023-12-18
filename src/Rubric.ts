@@ -491,6 +491,14 @@ export function itemScoreList(scores: RubricItemScore[], items: RubricItem[]) {
   );
 }
 
+export type RubricTopScoreUpdate = {
+  update: 'top';
+  // Optional id for debugging
+  id?: string;
+  updateComments?: boolean;
+  comments?: string;
+};
+
 export type ItemScoreUpdate = {
   update: 'item';
   itemId: string;
@@ -511,7 +519,7 @@ export type CategoryScoreUpdate = {
   comments?: string;
 };
 
-export type ScoreUpdate = ItemScoreUpdate | CategoryScoreUpdate;
+export type ScoreUpdate = RubricTopScoreUpdate | ItemScoreUpdate | CategoryScoreUpdate;
 
 export function updateRubricItemScore(
   itemScore: RubricItemScore,
@@ -642,6 +650,12 @@ export function updateRubricScore(
 ): RubricScore {
   // TODO: handle category changes here
   const updatedCategories = fixCategoryScoreList(rubric, score);
+
+  if (updatedScore && updatedScore.update === 'top') {
+    if (updatedScore.updateComments) {
+      score.comments = updatedScore.comments;
+    }
+  }
 
   const updatedRubricScore = {
     ...score,
